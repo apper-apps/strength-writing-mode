@@ -1,31 +1,39 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import Button from "@/components/atoms/Button";
-import Input from "@/components/atoms/Input";
-import Badge from "@/components/atoms/Badge";
-import Card from "@/components/atoms/Card";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { communityZoneService } from "@/services/api/communityZoneService";
+import { communitySettingService } from "@/services/api/communitySettingService";
+import { toast } from "react-toastify";
+import { communityService } from "@/services/api/communityService";
+import ApperIcon from "@/components/ApperIcon";
 import CommunityPostCard from "@/components/molecules/CommunityPostCard";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
-import ApperIcon from "@/components/ApperIcon";
-import { motion } from "framer-motion";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
-import { communityService } from "@/services/api/communityService";
-import { toast } from "react-toastify";
+import Badge from "@/components/atoms/Badge";
+import Input from "@/components/atoms/Input";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
 
 function Community() {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
+
+  // Data states
   const [posts, setPosts] = useState([]);
-  const [currentPost, setCurrentPost] = useState(null);
+  const [zones, setZones] = useState([]);
+  const [settings, setSettings] = useState(null);
+  const [selectedZone, setSelectedZone] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  
-  // New post modal states
+  const [currentPost, setCurrentPost] = useState(null);
+// New post modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPostTitle, setNewPostTitle] = useState("");
   const [newPostContent, setNewPostContent] = useState("");
@@ -36,6 +44,7 @@ function Community() {
   const [newComment, setNewComment] = useState("");
   const [replyTo, setReplyTo] = useState(null);
   const [commentLoading, setCommentLoading] = useState(false);
+
   const loadPosts = async () => {
     try {
       setError("");
@@ -76,12 +85,13 @@ const createPost = async () => {
       setCreateLoading(true);
       const postData = {
         title: newPostTitle.trim(),
-        content: newPostContent.trim(),
+content: newPostContent.trim(),
         category: newPostCategory,
-        authorId: "current_user",
-        authorName: "현재사용자",
-        authorRole: "Premium",
-        views: 0
+        authorId: user?.userId || "current_user",
+        authorName: user?.firstName || "현재사용자", 
+        authorRole: user?.role || "Free_User",
+        views: 0,
+        zone: selectedZone !== "all" ? selectedZone : null
       };
 
       const newPost = await communityService.create(postData);
@@ -394,7 +404,42 @@ const createPost = async () => {
   }
 
   // Community Posts List View
-  const categories = ["all", "질문", "후기", "자유", "수익인증"];
+const categories = selectedZone === "all" ? 
+    ["all", "질문", "후기", "자유", "수익인증"] : 
+    ["all", "질문", "후기", "자유"];
+
+  // Load zones and settings
+  useEffect(() => {
+    loadZonesAndSettings();
+  }, [user]);
+
+  const loadZonesAndSettings = async () => {
+    try {
+      const userRole = user?.role || "Free_User";
+      const [zonesData, settingsData] = await Promise.all([
+        communityZoneService.getByRole(userRole),
+        communitySettingService.getAll()
+      ]);
+      
+      setZones(zonesData);
+      setSettings(settingsData);
+    } catch (error) {
+      console.error("Error loading zones and settings:", error);
+    }
+  };
+
+  // Check if user can post in selected zone
+  const canPostInZone = () => {
+    if (selectedZone === "all") return false;
+    const zone = zones.find(z => z.slug === selectedZone);
+    return zone?.can_post && zone.roles?.includes(user?.role || "Free_User");
+  };
+
+  // Filter posts by zone
+  const filterPostsByZone = (posts) => {
+    if (selectedZone === "all") return posts;
+    return posts.filter(post => post.zone === selectedZone || (!post.zone && selectedZone === "free"));
+  };
   
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -436,10 +481,12 @@ return (
           </p>
         </div>
         
-        <Button onClick={() => setShowCreateModal(true)}>
-          <ApperIcon name="Plus" className="w-4 h-4 mr-2" />
-          새 글 작성
-        </Button>
+{canPostInZone() && (
+          <Button onClick={() => setShowCreateModal(true)}>
+            <ApperIcon name="Plus" className="w-4 h-4 mr-2" />
+            새 글 작성
+          </Button>
+        )}
       </motion.div>
 
       {/* Create Post Modal */}
@@ -467,6 +514,21 @@ return (
             
             <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
               <div>
+<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 korean-text">
+                  커뮤니티 구역
+                </label>
+                <select
+                  value={selectedZone}
+                  onChange={(e) => setSelectedZone(e.target.value)}
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white korean-text mb-4"
+                >
+                  {zones.map(zone => (
+                    <option key={zone.slug} value={zone.slug}>
+                      {zone.label}
+                    </option>
+                  ))}
+                </select>
+
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 korean-text">
                   카테고리
                 </label>
@@ -475,11 +537,11 @@ return (
                   onChange={(e) => setNewPostCategory(e.target.value)}
                   className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white korean-text"
                 >
-                  <option value="질문">질문</option>
-                  <option value="후기">후기</option>
-                  <option value="수익인증">수익인증</option>
-                  <option value="자유">자유</option>
-                  <option value="스터디">스터디</option>
+                  {categories.filter(cat => cat !== "all").map(category => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
                 </select>
               </div>
               
