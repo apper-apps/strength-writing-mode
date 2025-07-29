@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import Card from '@/components/atoms/Card';
-import Button from '@/components/atoms/Button';
-import Badge from '@/components/atoms/Badge';
-import ApperIcon from '@/components/ApperIcon';
-import Loading from '@/components/ui/Loading';
-import Error from '@/components/ui/Error';
-import { userService } from '@/services/api/dashboardService';
-import { coursesService } from '@/services/api/coursesService';
-import { userBadgeService } from '@/services/api/userBadgeService';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { userBadgeService } from "@/services/api/userBadgeService";
+import { userService } from "@/services/api/dashboardService";
+import { coursesService } from "@/services/api/coursesService";
+import ApperIcon from "@/components/ApperIcon";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
+import Badge from "@/components/atoms/Badge";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
 // Bookmarked Courses Component
 const BookmarkedCourses = () => {
   const [bookmarkedCourses, setBookmarkedCourses] = useState([]);
@@ -148,14 +148,37 @@ const BookmarkedCourses = () => {
   );
 };
 const Profile = () => {
+  // All hooks must be called before any conditional logic
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const currentUser = useSelector((state) => state.user.user);
+  const [earnedBadges, setEarnedBadges] = useState([]);
+  const [badgeLoading, setBadgeLoading] = useState(false);
 
   useEffect(() => {
     loadProfileData();
   }, []);
+
+  // Load user's earned badges
+  useEffect(() => {
+    const loadEarnedBadges = async () => {
+      if (currentUser?.userId) {
+        setBadgeLoading(true);
+        try {
+          const userBadges = await userBadgeService.getUserBadges(currentUser.userId);
+          setEarnedBadges(userBadges);
+        } catch (error) {
+          console.error('Failed to load earned badges:', error);
+        } finally {
+          setBadgeLoading(false);
+        }
+      }
+    };
+    
+    loadEarnedBadges();
+  }, [currentUser]);
 
   const loadProfileData = async () => {
     try {
@@ -220,38 +243,17 @@ const Profile = () => {
     }
   };
 
-  const item = {
+const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
 
+  // Handle loading, error, and empty data states within the return
   if (isLoading) return <Loading />;
   if (error) return <Error message={error} onRetry={loadProfileData} />;
   if (!profileData) return <Error message="프로필 데이터를 찾을 수 없습니다." onRetry={loadProfileData} />;
 
-const { user, stats, completedCourses, inProgressCourses, badges, achievements } = profileData;
-  const currentUser = useSelector((state) => state.user.user);
-  const [earnedBadges, setEarnedBadges] = useState([]);
-  const [badgeLoading, setBadgeLoading] = useState(false);
-
-  // Load user's earned badges
-  useEffect(() => {
-    const loadEarnedBadges = async () => {
-      if (currentUser?.userId) {
-        setBadgeLoading(true);
-        try {
-          const userBadges = await userBadgeService.getUserBadges(currentUser.userId);
-          setEarnedBadges(userBadges);
-        } catch (error) {
-          console.error('Failed to load earned badges:', error);
-        } finally {
-          setBadgeLoading(false);
-        }
-      }
-    };
-    
-    loadEarnedBadges();
-  }, [currentUser]);
+  const { user, stats, completedCourses, inProgressCourses, badges, achievements } = profileData;
 
   return (
     <motion.div
@@ -412,7 +414,9 @@ const { user, stats, completedCourses, inProgressCourses, badges, achievements }
         </Card>
       </motion.div>
 
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+{/* Course Grid */}
+      <motion.div variants={item}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Completed Courses */}
         <motion.div variants={item}>
           <Card className="p-6">
@@ -491,7 +495,8 @@ const { user, stats, completedCourses, inProgressCourses, badges, achievements }
         </motion.div>
 {/* Bookmarked Courses */}
         <BookmarkedCourses />
-      </div>
+        </div>
+      </motion.div>
 
       {/* Badges Section */}
       <motion.div variants={item}>
