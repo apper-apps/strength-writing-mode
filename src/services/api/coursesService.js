@@ -9,7 +9,7 @@ export const coursesService = {
         apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
       });
 
-      const params = {
+const params = {
         fields: [
           { field: { Name: "Name" } },
           { field: { Name: "title" } },
@@ -21,7 +21,8 @@ export const coursesService = {
           { field: { Name: "progress" } },
           { field: { Name: "category" } },
           { field: { Name: "instructor" } },
-          { field: { Name: "level" } }
+          { field: { Name: "level" } },
+          { field: { Name: "courseCategoryId" } }
         ]
       };
 

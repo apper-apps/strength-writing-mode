@@ -12,7 +12,7 @@ import ApperIcon from "@/components/ApperIcon";
 import { motion } from "framer-motion";
 import { coursesService } from "@/services/api/coursesService";
 import { toast } from "react-toastify";
-
+import { courseCategoryService } from '@/services/api/courseCategoryService';
 const Courses = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -23,8 +23,10 @@ const Courses = () => {
 const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedLevel, setSelectedLevel] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+const [selectedCategory, setSelectedCategory] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [courseCategories, setCourseCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState("all");
 
   const loadCourses = async () => {
     try {
@@ -247,14 +249,18 @@ const filteredCourses = courses.filter(course => {
     const matchesRole = selectedRole === "all" || course.requiredRole === selectedRole;
     const matchesLevel = selectedLevel === "all" || course.level === selectedLevel;
     const matchesCategory = selectedCategory === "all" || course.category === selectedCategory;
-    return matchesSearch && matchesRole && matchesLevel && matchesCategory;
+    const matchesTab = activeTab === "all" || 
+                      (course.courseCategoryId && course.courseCategoryId.slug === activeTab) ||
+                      course.category === activeTab;
+    return matchesSearch && matchesRole && matchesLevel && matchesCategory && matchesTab;
   });
 
-  const resetFilters = () => {
+const resetFilters = () => {
     setSearchTerm("");
     setSelectedRole("all");
     setSelectedLevel("all");
     setSelectedCategory("all");
+    setActiveTab("all");
   };
 
   const hasActiveFilters = searchTerm || selectedRole !== "all" || selectedLevel !== "all" || selectedCategory !== "all";
@@ -289,6 +295,62 @@ const filteredCourses = courses.filter(course => {
         <p className="text-gray-600 dark:text-gray-300 korean-text">
           체계적인 4단계 과정으로 글쓰기 수익화를 배워보세요
         </p>
+</motion.div>
+
+      {/* Learning Path Tabs */}
+      <motion.div variants={item} className="mb-8">
+        <div className="flex flex-wrap gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTab === "all"
+                ? "bg-primary text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+            }`}
+          >
+            전체
+          </button>
+          <button
+            onClick={() => setActiveTab("strength")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTab === "strength"
+                ? "bg-primary text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+            }`}
+          >
+            강점 찾기
+          </button>
+          <button
+            onClick={() => setActiveTab("concept")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTab === "concept"
+                ? "bg-primary text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+            }`}
+          >
+            콘셉트 설계
+          </button>
+          <button
+            onClick={() => setActiveTab("writing")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTab === "writing"
+                ? "bg-primary text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+            }`}
+          >
+            글 시나리오
+          </button>
+          <button
+            onClick={() => setActiveTab("monetization")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTab === "monetization"
+                ? "bg-primary text-white shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700"
+            }`}
+          >
+            수익화 실행
+          </button>
+        </div>
       </motion.div>
 
 {/* Search Bar */}
