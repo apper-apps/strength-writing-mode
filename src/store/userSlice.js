@@ -15,12 +15,17 @@ export const userSlice = createSlice({
       state.user = JSON.parse(JSON.stringify(action.payload));
       state.isAuthenticated = !!action.payload;
     },
-    clearUser: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
+clearUser: (state) => {
+state.user = null;
+state.isAuthenticated = false;
+    },
+    setUserRole: (state, action) => {
+      if (state.user) {
+        state.user = { ...state.user, role: action.payload };
+      }
     },
   },
 });
 
-export const { setUser, clearUser } = userSlice.actions;
+export const { setUser, clearUser, setUserRole } = userSlice.actions;
 export default userSlice.reducer;

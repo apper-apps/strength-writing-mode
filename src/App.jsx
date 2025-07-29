@@ -17,6 +17,7 @@ import Landing from "@/components/pages/Landing";
 import Courses from "@/components/pages/Courses";
 import Community from "@/components/pages/Community";
 import Dashboard from "@/components/pages/Dashboard";
+import MembershipUpgrade from "@/components/pages/MembershipUpgrade";
 
 // Create auth context
 export const AuthContext = createContext(null);
@@ -137,8 +138,9 @@ function AppContent() {
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:courseId" element={<Courses />} />
           <Route path="/community" element={<Community />} />
-          <Route path="/community/post/:postId" element={<Community />} />
-          <Route path="/profile" element={<Profile />} />
+<Route path="/community/post/:postId" element={<Community />} />
+<Route path="/profile" element={<Profile />} />
+<Route path="/membership-upgrade" element={<MembershipUpgrade />} />
         </Routes>
       </Layout>
 <ToastContainer 
