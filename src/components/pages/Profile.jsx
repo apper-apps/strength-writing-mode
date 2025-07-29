@@ -513,15 +513,29 @@ const item = {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
+onClick={async () => {
                   if (currentUser?.userId) {
-                    userBadgeService.checkAndAwardBadges(currentUser.userId);
+                    setBadgeLoading(true);
+                    try {
+                      const newBadges = await userBadgeService.checkAndAwardBadges(currentUser.userId);
+                      if (newBadges.length > 0) {
+                        // Reload earned badges to show new ones
+                        const updatedBadges = await userBadgeService.getUserBadges(currentUser.userId);
+                        setEarnedBadges(updatedBadges);
+                      } else {
+                        toast.info('현재 획득 가능한 새 배지가 없습니다');
+                      }
+                    } catch (error) {
+                      toast.error('배지 확인 중 오류가 발생했습니다');
+                    } finally {
+                      setBadgeLoading(false);
+                    }
                   }
                 }}
                 disabled={badgeLoading}
               >
-                <ApperIcon name="RefreshCw" className="w-4 h-4 mr-1" />
-                배지 확인
+                <ApperIcon name={badgeLoading ? "Loader2" : "RefreshCw"} className={`w-4 h-4 mr-1 ${badgeLoading ? 'animate-spin' : ''}`} />
+                {badgeLoading ? '확인 중...' : '배지 확인'}
               </Button>
             </div>
           </div>
@@ -544,7 +558,7 @@ const item = {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {earnedBadges.map((badge) => (
                 <div key={badge.Id} className="group relative">
-                  <div className="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-yellow-300 dark:hover:border-yellow-600">
+<div className="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-yellow-300 dark:hover:border-yellow-600">
                     <div className="flex items-start space-x-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                         <ApperIcon name={badge.icon || 'Award'} className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
@@ -554,7 +568,7 @@ const item = {
                           {badge.name}
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400 leading-tight korean-text mb-2">
-                          {badge.description}
+                          {badge.description || badge.badgeDetails?.criteria || '특별한 성취를 달성했습니다'}
                         </p>
                         <div className="flex items-center gap-2">
                           <Badge variant="success" size="xs">

@@ -299,5 +299,70 @@ export const badgeService = {
       console.error("Error resetting monthly badges:", error.message);
       return false;
     }
+},
+
+  seedBadges: async () => {
+    try {
+      const badgesSeed = [
+        {
+          id: "month4",
+          name: "월간 4편 완료",
+          icon: "trophy",
+          criteria: "videos>=4",
+          reset_cycle: "monthly"
+        },
+        {
+          id: "path1", 
+          name: "강점 찾기 완료",
+          icon: "star",
+          criteria: "category=strength && complete",
+          reset_cycle: "none"
+        }
+      ];
+
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      // Check if badges already exist
+      const existingBadges = await badgeService.getAllBadges();
+      const createdBadges = [];
+
+      for (const seedBadge of badgesSeed) {
+        const exists = existingBadges.some(badge => badge.Name === seedBadge.name);
+        
+        if (!exists) {
+          const params = {
+            records: [{
+              Name: seedBadge.name,
+              icon: seedBadge.icon,
+              criteria: seedBadge.criteria,
+              resetCycle: seedBadge.reset_cycle
+            }]
+          };
+
+          const response = await apperClient.createRecord('badges', params);
+          
+          if (response.success && response.results && response.results[0]?.success) {
+            createdBadges.push(response.results[0].data);
+            console.log(`Created badge: ${seedBadge.name}`);
+          }
+        }
+      }
+
+      if (createdBadges.length > 0) {
+        toast.success(`${createdBadges.length}개의 배지가 생성되었습니다`);
+      } else {
+        console.log('All seed badges already exist');
+      }
+
+      return createdBadges;
+    } catch (error) {
+      console.error("Error seeding badges:", error.message);
+      toast.error('배지 생성 중 오류가 발생했습니다');
+      return [];
+    }
   }
 };

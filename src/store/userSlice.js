@@ -16,8 +16,8 @@ export const userSlice = createSlice({
       state.isAuthenticated = !!action.payload;
     },
 clearUser: (state) => {
-state.user = null;
-state.isAuthenticated = false;
+      state.user = null;
+      state.isAuthenticated = false;
     },
     setUserRole: (state, action) => {
       if (state.user) {
