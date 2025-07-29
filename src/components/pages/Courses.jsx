@@ -11,6 +11,7 @@ import Empty from "@/components/ui/Empty";
 import ApperIcon from "@/components/ApperIcon";
 import { motion } from "framer-motion";
 import { coursesService } from "@/services/api/coursesService";
+import { toast } from "react-toastify";
 
 const Courses = () => {
   const { courseId } = useParams();
@@ -476,9 +477,14 @@ const filteredCourses = courses.filter(course => {
           variants={container}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {filteredCourses.map((course) => (
+{filteredCourses.map((course) => (
             <motion.div key={course.Id} variants={item}>
-              <CourseCard course={course} />
+              <CourseCard 
+                course={course} 
+                onBookmarkChange={() => {
+                  // Trigger re-render if needed for bookmark status
+                }}
+              />
             </motion.div>
           ))}
         </motion.div>

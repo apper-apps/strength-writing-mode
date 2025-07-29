@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import Card from '@/components/atoms/Card';
 import Button from '@/components/atoms/Button';
 import Badge from '@/components/atoms/Badge';
@@ -8,7 +9,143 @@ import ApperIcon from '@/components/ApperIcon';
 import Loading from '@/components/ui/Loading';
 import Error from '@/components/ui/Error';
 import { userService } from '@/services/api/dashboardService';
+import { coursesService } from '@/services/api/coursesService';
 
+// Bookmarked Courses Component
+const BookmarkedCourses = () => {
+  const [bookmarkedCourses, setBookmarkedCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const loadBookmarkedCourses = async () => {
+    try {
+      setLoading(true);
+      const courses = await coursesService.getBookmarks();
+      setBookmarkedCourses(courses);
+    } catch (error) {
+      toast.error('북마크된 강의를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveBookmark = async (courseId) => {
+    try {
+      await coursesService.removeBookmark(courseId);
+      setBookmarkedCourses(prev => prev.filter(course => course.Id !== courseId));
+      toast.success('북마크에서 제거되었습니다');
+    } catch (error) {
+      toast.error('북마크 제거에 실패했습니다');
+    }
+  };
+
+  const handleViewCourse = (courseId) => {
+    navigate(`/courses/${courseId}`);
+  };
+
+  const getRoleBadgeVariant = (role) => {
+    switch (role) {
+      case "Free_User": return "free";
+      case "Premium": return "premium"; 
+      case "Master": return "master";
+      default: return "default";
+    }
+  };
+
+  const getRoleText = (role) => {
+    switch (role) {
+      case "Free_User": return "무료";
+      case "Premium": return "프리미엄";
+      case "Master": return "마스터";
+      default: return role;
+    }
+  };
+
+  useEffect(() => {
+    loadBookmarkedCourses();
+  }, []);
+
+  return (
+    <motion.div variants={{
+      hidden: { opacity: 0, y: 20 },
+      show: { opacity: 1, y: 0 }
+    }}>
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white korean-text flex items-center gap-2">
+            <ApperIcon name="Heart" className="w-5 h-5 text-red-500" />
+            북마크한 강의
+          </h3>
+          <Badge variant="primary" size="sm">
+            {bookmarkedCourses.length}개 저장
+          </Badge>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loading />
+          </div>
+        ) : bookmarkedCourses.length === 0 ? (
+          <div className="text-center py-8">
+            <ApperIcon name="Heart" className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 korean-text">
+              아직 북마크한 강의가 없습니다
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/courses')}
+              className="mt-3"
+            >
+              강의 둘러보기
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {bookmarkedCourses.map((course) => (
+              <div key={course.Id} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 dark:text-white korean-text mb-1">
+                      {course.title}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 korean-text mb-2 line-clamp-2">
+                      {course.description}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getRoleBadgeVariant(course.requiredRole)} size="sm">
+                        {getRoleText(course.requiredRole)}
+                      </Badge>
+                      <span className="text-xs text-gray-500">
+                        {course.duration}분
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 ml-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewCourse(course.Id)}
+                    >
+                      <ApperIcon name="Play" className="w-4 h-4 mr-1" />
+                      학습하기
+                    </Button>
+                    <button
+                      onClick={() => handleRemoveBookmark(course.Id)}
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="북마크 제거"
+                    >
+                      <ApperIcon name="Heart" className="w-4 h-4 fill-current" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </motion.div>
+  );
+};
 const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -252,7 +389,7 @@ const Profile = () => {
         </Card>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Completed Courses */}
         <motion.div variants={item}>
           <Card className="p-6">
@@ -329,6 +466,9 @@ const Profile = () => {
             </div>
           </Card>
         </motion.div>
+
+        {/* Bookmarked Courses */}
+        <BookmarkedCourses />
       </div>
 
       {/* Badges Section */}

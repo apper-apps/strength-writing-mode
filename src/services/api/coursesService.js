@@ -41,5 +41,35 @@ export const coursesService = {
     }
     const deleted = coursesData.splice(index, 1)[0];
     return { ...deleted };
+  },
+
+  // Bookmark functionality
+  getBookmarks: async () => {
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const bookmarks = JSON.parse(localStorage.getItem('courseBookmarks') || '[]');
+    return bookmarks.map(id => coursesData.find(course => course.Id === id)).filter(Boolean);
+  },
+
+  addBookmark: async (courseId) => {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const bookmarks = JSON.parse(localStorage.getItem('courseBookmarks') || '[]');
+    if (!bookmarks.includes(courseId)) {
+      bookmarks.push(courseId);
+      localStorage.setItem('courseBookmarks', JSON.stringify(bookmarks));
+    }
+    return { success: true };
+  },
+
+  removeBookmark: async (courseId) => {
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const bookmarks = JSON.parse(localStorage.getItem('courseBookmarks') || '[]');
+    const updatedBookmarks = bookmarks.filter(id => id !== courseId);
+    localStorage.setItem('courseBookmarks', JSON.stringify(updatedBookmarks));
+    return { success: true };
+  },
+
+  isBookmarked: (courseId) => {
+    const bookmarks = JSON.parse(localStorage.getItem('courseBookmarks') || '[]');
+    return bookmarks.includes(courseId);
   }
 };

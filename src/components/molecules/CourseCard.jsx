@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
 import ApperIcon from "@/components/ApperIcon";
+import { coursesService } from "@/services/api/coursesService";
 
 const CourseCard = ({ course }) => {
   const navigate = useNavigate();
@@ -39,6 +41,34 @@ const CourseCard = ({ course }) => {
     navigate(`/courses/${course.Id}`);
   };
 
+const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
+  useEffect(() => {
+    setIsBookmarked(coursesService.isBookmarked(course.Id));
+  }, [course.Id]);
+
+  const handleBookmarkToggle = async (e) => {
+    e.stopPropagation();
+    setIsBookmarkLoading(true);
+    
+    try {
+      if (isBookmarked) {
+        await coursesService.removeBookmark(course.Id);
+        setIsBookmarked(false);
+        toast.success('북마크에서 제거되었습니다');
+      } else {
+        await coursesService.addBookmark(course.Id);
+        setIsBookmarked(true);
+        toast.success('북마크에 추가되었습니다');
+      }
+    } catch (error) {
+      toast.error('북마크 처리 중 오류가 발생했습니다');
+    } finally {
+      setIsBookmarkLoading(false);
+    }
+  };
+
   return (
     <Card className="overflow-hidden" hover>
       <div className="aspect-video bg-gradient-to-br from-primary-500 to-primary-600 relative overflow-hidden">
@@ -51,6 +81,23 @@ const CourseCard = ({ course }) => {
           <Badge variant={getRoleBadgeVariant(course.requiredRole)}>
             {getRoleText(course.requiredRole)}
           </Badge>
+        </div>
+        <div className="absolute top-4 right-4">
+          <button
+            onClick={handleBookmarkToggle}
+            disabled={isBookmarkLoading}
+            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+              isBookmarked 
+                ? 'bg-red-500 bg-opacity-80 text-white hover:bg-red-600' 
+                : 'bg-white bg-opacity-20 text-white hover:bg-white hover:bg-opacity-30'
+            } ${isBookmarkLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+            title={isBookmarked ? '북마크 제거' : '북마크 추가'}
+          >
+            <ApperIcon 
+              name={isBookmarked ? "Heart" : "Heart"} 
+              className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`}
+            />
+          </button>
         </div>
       </div>
       
