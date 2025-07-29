@@ -151,7 +151,10 @@ content: newPostContent.trim(),
       loadPosts();
     }
   }, [postId]);
-
+// Load zones and settings
+  useEffect(() => {
+    loadZonesAndSettings();
+  }, [user]);
   if (loading) {
     return <Loading className="p-8" />;
   }
@@ -408,10 +411,6 @@ const categories = selectedZone === "all" ?
     ["all", "질문", "후기", "자유", "수익인증"] : 
     ["all", "질문", "후기", "자유"];
 
-  // Load zones and settings
-  useEffect(() => {
-    loadZonesAndSettings();
-  }, [user]);
 
   const loadZonesAndSettings = async () => {
     try {
