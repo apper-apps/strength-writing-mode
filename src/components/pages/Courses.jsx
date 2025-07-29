@@ -19,8 +19,11 @@ const Courses = () => {
   const [currentCourse, setCurrentCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedLevel, setSelectedLevel] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const loadCourses = async () => {
     try {
@@ -234,12 +237,26 @@ const Courses = () => {
   }
 
   // Courses List View
-  const filteredCourses = courses.filter(course => {
+const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === "all" || course.requiredRole === selectedRole;
-    return matchesSearch && matchesRole;
+    const matchesLevel = selectedLevel === "all" || course.level === selectedLevel;
+    const matchesCategory = selectedCategory === "all" || course.category === selectedCategory;
+    return matchesSearch && matchesRole && matchesLevel && matchesCategory;
   });
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedRole("all");
+    setSelectedLevel("all");
+    setSelectedCategory("all");
+  };
+
+  const hasActiveFilters = searchTerm || selectedRole !== "all" || selectedLevel !== "all" || selectedCategory !== "all";
 
   const container = {
     hidden: { opacity: 0 },
@@ -273,54 +290,185 @@ const Courses = () => {
         </p>
       </motion.div>
 
-      {/* Filters */}
-      <motion.div variants={item} className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
+{/* Search Bar */}
+      <motion.div variants={item} className="mb-6">
+        <div className="relative">
+          <ApperIcon 
+            name="Search" 
+            size={20} 
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          />
           <Input
-            placeholder="강의 제목이나 내용으로 검색..."
+            placeholder="강의 제목, 내용, 카테고리, 강사명으로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
+            className="w-full pl-10 pr-4 py-3 text-lg"
           />
         </div>
-        
-        <div className="flex space-x-2">
-          <Button
-            variant={selectedRole === "all" ? "primary" : "secondary"}
-            onClick={() => setSelectedRole("all")}
-            size="sm"
-          >
-            전체
-          </Button>
-          <Button
-            variant={selectedRole === "Free_User" ? "primary" : "secondary"}
-            onClick={() => setSelectedRole("Free_User")}
-            size="sm"
-          >
-            무료
-          </Button>
-          <Button
-            variant={selectedRole === "Premium" ? "primary" : "secondary"}
-            onClick={() => setSelectedRole("Premium")}
-            size="sm"
-          >
-            프리미엄
-          </Button>
-          <Button
-            variant={selectedRole === "Master" ? "primary" : "secondary"}
-            onClick={() => setSelectedRole("Master")}
-            size="sm"
-          >
-            마스터
-          </Button>
+      </motion.div>
+
+      {/* Filter Controls */}
+      <motion.div variants={item} className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="secondary"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <ApperIcon name="Filter" size={16} />
+              필터 {showFilters ? '숨기기' : '보기'}
+            </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <ApperIcon name="X" size={14} />
+                초기화
+              </Button>
+            )}
+          </div>
+          <div className="text-sm text-gray-600">
+            총 {filteredCourses.length}개의 강의
+          </div>
         </div>
       </motion.div>
+
+      {/* Filter Sidebar */}
+      {showFilters && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="mb-6 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Role Filter */}
+            <div>
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <ApperIcon name="Shield" size={16} />
+                멤버십
+              </h4>
+              <div className="space-y-2">
+                {[
+                  { value: "all", label: "전체" },
+                  { value: "Free_User", label: "무료" },
+                  { value: "Premium", label: "프리미엄" },
+                  { value: "Master", label: "마스터" }
+                ].map((role) => (
+                  <button
+                    key={role.value}
+                    onClick={() => setSelectedRole(role.value)}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      selectedRole === role.value
+                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {role.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Level Filter */}
+            <div>
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <ApperIcon name="TrendingUp" size={16} />
+                난이도
+              </h4>
+              <div className="space-y-2">
+                {[
+                  { value: "all", label: "전체" },
+                  { value: "초급", label: "초급" },
+                  { value: "중급", label: "중급" },
+                  { value: "고급", label: "고급" }
+                ].map((level) => (
+                  <button
+                    key={level.value}
+                    onClick={() => setSelectedLevel(level.value)}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      selectedLevel === level.value
+                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {level.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div>
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <ApperIcon name="Tag" size={16} />
+                카테고리
+              </h4>
+              <div className="space-y-2">
+                {[
+                  { value: "all", label: "전체" },
+                  { value: "기초", label: "기초" },
+                  { value: "기획", label: "기획" },
+                  { value: "글쓰기", label: "글쓰기" },
+                  { value: "수익화", label: "수익화" },
+                  { value: "마케팅", label: "마케팅" },
+                  { value: "소셜미디어", label: "소셜미디어" },
+                  { value: "뉴스레터", label: "뉴스레터" },
+                  { value: "브랜딩", label: "브랜딩" }
+                ].map((category) => (
+                  <button
+                    key={category.value}
+                    onClick={() => setSelectedCategory(category.value)}
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                      selectedCategory === category.value
+                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div>
+              <h4 className="font-medium mb-3 flex items-center gap-2">
+                <ApperIcon name="BarChart3" size={16} />
+                통계
+              </h4>
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex justify-between">
+                  <span>전체 강의:</span>
+                  <span className="font-medium">{courses.length}개</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>검색 결과:</span>
+                  <span className="font-medium text-primary-600">{filteredCourses.length}개</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>무료 강의:</span>
+                  <span className="font-medium">{courses.filter(c => c.requiredRole === "Free_User").length}개</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>프리미엄:</span>
+                  <span className="font-medium">{courses.filter(c => c.requiredRole === "Premium").length}개</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Courses Grid */}
       {filteredCourses.length === 0 ? (
         <Empty 
           title="강의가 없습니다"
-          description="검색 조건에 맞는 강의를 찾을 수 없습니다"
+          description={hasActiveFilters ? "검색 조건에 맞는 강의를 찾을 수 없습니다" : "아직 등록된 강의가 없습니다"}
           iconName="BookOpen"
         />
       ) : (
