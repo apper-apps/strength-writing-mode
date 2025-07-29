@@ -181,7 +181,7 @@ export const userService = {
     }
   },
 
-  getBadges: async () => {
+getBadges: async () => {
     try {
       const profile = await userService.getUserProfile();
       return profile.badges || [];

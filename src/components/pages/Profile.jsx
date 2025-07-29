@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import Card from '@/components/atoms/Card';
 import Button from '@/components/atoms/Button';
 import Badge from '@/components/atoms/Badge';
@@ -10,7 +11,7 @@ import Loading from '@/components/ui/Loading';
 import Error from '@/components/ui/Error';
 import { userService } from '@/services/api/dashboardService';
 import { coursesService } from '@/services/api/coursesService';
-
+import { userBadgeService } from '@/services/api/userBadgeService';
 // Bookmarked Courses Component
 const BookmarkedCourses = () => {
   const [bookmarkedCourses, setBookmarkedCourses] = useState([]);
@@ -228,10 +229,32 @@ const Profile = () => {
   if (error) return <Error message={error} onRetry={loadProfileData} />;
   if (!profileData) return <Error message="프로필 데이터를 찾을 수 없습니다." onRetry={loadProfileData} />;
 
-  const { user, stats, completedCourses, inProgressCourses, badges, achievements } = profileData;
+const { user, stats, completedCourses, inProgressCourses, badges, achievements } = profileData;
+  const currentUser = useSelector((state) => state.user.user);
+  const [earnedBadges, setEarnedBadges] = useState([]);
+  const [badgeLoading, setBadgeLoading] = useState(false);
+
+  // Load user's earned badges
+  useEffect(() => {
+    const loadEarnedBadges = async () => {
+      if (currentUser?.userId) {
+        setBadgeLoading(true);
+        try {
+          const userBadges = await userBadgeService.getUserBadges(currentUser.userId);
+          setEarnedBadges(userBadges);
+        } catch (error) {
+          console.error('Failed to load earned badges:', error);
+        } finally {
+          setBadgeLoading(false);
+        }
+      }
+    };
+    
+    loadEarnedBadges();
+  }, [currentUser]);
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       variants={container}
       initial="hidden"
@@ -466,8 +489,7 @@ const Profile = () => {
             </div>
           </Card>
         </motion.div>
-
-        {/* Bookmarked Courses */}
+{/* Bookmarked Courses */}
         <BookmarkedCourses />
       </div>
 
@@ -475,38 +497,78 @@ const Profile = () => {
       <motion.div variants={item}>
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white korean-text">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white korean-text flex items-center gap-2">
+              <ApperIcon name="Award" className="w-5 h-5 text-yellow-500" />
               획득한 배지
-            </h3>
-            <Badge variant="primary" size="sm">
-              {badges.length}/{stats.totalBadges}개 획득
-            </Badge>
+</h3>
+            <div className="flex items-center gap-2">
+              <Badge variant="primary" size="sm">
+                {earnedBadges.length}개 획득
+              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (currentUser?.userId) {
+                    userBadgeService.checkAndAwardBadges(currentUser.userId);
+                  }
+                }}
+                disabled={badgeLoading}
+              >
+                <ApperIcon name="RefreshCw" className="w-4 h-4 mr-1" />
+                배지 확인
+              </Button>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {badges.map((badge) => (
-              <div key={badge.Id} className="group relative">
-                <div className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${getBadgeColor(badge.color)}`}>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-white bg-opacity-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <ApperIcon name={badge.icon} className="w-5 h-5" />
+          {badgeLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loading />
+            </div>
+          ) : earnedBadges.length === 0 ? (
+            <div className="text-center py-8">
+              <ApperIcon name="Award" className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 korean-text mb-2">
+                아직 획득한 배지가 없습니다
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 korean-text">
+                강의를 완료하고 목표를 달성하여 배지를 획득하세요
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {earnedBadges.map((badge) => (
+                <div key={badge.Id} className="group relative">
+                  <div className="p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 transition-all duration-200 hover:scale-105 hover:shadow-lg hover:border-yellow-300 dark:hover:border-yellow-600">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900 dark:to-yellow-800 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <ApperIcon name={badge.icon || 'Award'} className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm mb-1 korean-text text-gray-900 dark:text-white">
+                          {badge.name}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-tight korean-text mb-2">
+                          {badge.description}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="success" size="xs">
+                            획득완료
+                          </Badge>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(badge.earnedDate).toLocaleDateString('ko-KR')}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm mb-1 korean-text">
-                        {badge.name}
-                      </h4>
-                      <p className="text-xs opacity-80 leading-tight korean-text">
-                        {badge.description}
-                      </p>
-                      <p className="text-xs opacity-60 mt-2">
-                        {new Date(badge.earnedDate).toLocaleDateString('ko-KR')}
-                      </p>
-                    </div>
+                    
+                    {/* Badge shine effect */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 group-hover:animate-pulse pointer-events-none" />
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </motion.div>
 
