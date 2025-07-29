@@ -10,7 +10,7 @@ export const dashboardService = {
       });
 
       const params = {
-        fields: [
+fields: [
           { field: { Name: "Name" } },
           { field: { Name: "user" } },
           { field: { Name: "stats" } },
@@ -33,7 +33,7 @@ export const dashboardService = {
 
       const dashboard = response.data[0];
       
-      // Parse JSON fields
+// Parse JSON fields
       const stats = dashboard.stats ? JSON.parse(dashboard.stats) : {};
       const recentCourses = dashboard.recentCourses ? JSON.parse(dashboard.recentCourses) : [];
       const communityHighlights = dashboard.communityHighlights ? JSON.parse(dashboard.communityHighlights) : [];
