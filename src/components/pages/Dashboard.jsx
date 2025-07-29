@@ -11,10 +11,12 @@ import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
 
 const Dashboard = () => {
-const [dashboardData, setDashboardData] = useState([]);
+  const [dashboardData, setDashboardData] = useState([]);
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [challenge, setChallenge] = useState(null);
+  const [participation, setParticipation] = useState(null);
   const navigate = useNavigate();
   const loadDashboardData = async () => {
     try {
@@ -35,6 +37,13 @@ useEffect(() => {
     loadDashboardData();
     loadBanners();
   }, []);
+
+  // Load challenge data when dashboard data is available
+  useEffect(() => {
+    if (dashboardData && dashboardData.user) {
+      loadChallengeData();
+    }
+  }, [dashboardData]);
 
   const loadBanners = async () => {
     try {
@@ -58,8 +67,6 @@ useEffect(() => {
   const stats = dashboardData.stats || {};
   const recentCourses = dashboardData.recentCourses || [];
 const communityHighlights = dashboardData.communityHighlights || [];
-  const [challenge, setChallenge] = useState(null);
-  const [participation, setParticipation] = useState(null);
   const getRoleBadgeVariant = (role) => {
     switch (role) {
       case "Free_User": return "free";
@@ -112,13 +119,6 @@ const loadChallengeData = async () => {
       console.error("Error loading challenge data:", error.message);
     }
   };
-
-  // Load challenge data when dashboard data is available
-  useEffect(() => {
-    if (dashboardData && dashboardData.user) {
-      loadChallengeData();
-    }
-  }, [dashboardData]);
 
   return (
 <motion.div 
