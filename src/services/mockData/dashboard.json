@@ -1,0 +1,67 @@
+{
+  "user": {
+    "Id": 1,
+    "name": "김강점",
+    "email": "user@example.com",
+    "role": "Premium",
+    "joinDate": "2024-01-15",
+    "progress": 65
+  },
+  "stats": {
+    "overallProgress": 65,
+    "completedCourses": 3,
+    "totalCourses": 8,
+    "postsWritten": 12,
+    "postsGrowth": 3,
+    "communityPoints": 145
+  },
+  "recentCourses": [
+    {
+      "Id": 1,
+      "title": "강점 찾기: 나만의 전문성 발견하기",
+      "progress": 100,
+      "lastAccessed": "2024-12-19"
+    },
+    {
+      "Id": 2,
+      "title": "콘셉트 설계: 독자 중심 기획법",
+      "progress": 75,
+      "lastAccessed": "2024-12-18"
+    },
+    {
+      "Id": 3,
+      "title": "글 시나리오: 구조화된 글쓰기",
+      "progress": 40,
+      "lastAccessed": "2024-12-17"
+    }
+  ],
+  "communityHighlights": [
+    {
+      "Id": 1,
+      "title": "첫 수익글로 30만원 달성했습니다!",
+      "authorName": "성공맨",
+      "authorRole": "Premium",
+      "likes": 24,
+      "replies": 8,
+      "timestamp": "2024-12-19T10:30:00.000Z"
+    },
+    {
+      "Id": 2,
+      "title": "강점 찾기 강의 너무 유용해요",
+      "authorName": "글쓰기초보",
+      "authorRole": "Free_User",
+      "likes": 15,
+      "replies": 5,
+      "timestamp": "2024-12-18T15:20:00.000Z"
+    },
+    {
+      "Id": 3,
+      "title": "콘셉트 설계할 때 이것만은 주의하세요",
+      "authorName": "전문가A",
+      "authorRole": "Master",
+      "likes": 32,
+      "replies": 12,
+      "timestamp": "2024-12-18T09:15:00.000Z"
+    }
+  ]
+}
