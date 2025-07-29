@@ -484,6 +484,22 @@ const filteredCourses = courses.filter(course => {
                 onBookmarkChange={() => {
                   // Trigger re-render if needed for bookmark status
                 }}
+                onProgressUpdate={async () => {
+                  // Simulate progress update for demonstration
+                  try {
+                    const result = await coursesService.simulateProgress(course.Id);
+                    if (result.success) {
+                      // Update local state to trigger re-render
+                      const updatedCourses = courses.map(c => 
+                        c.Id === course.Id ? { ...c, progress: result.progress } : c
+                      );
+                      setCourses(updatedCourses);
+                      toast.success(`진도율이 ${result.progress}%로 업데이트되었습니다!`);
+                    }
+                  } catch (error) {
+                    toast.error('진도율 업데이트에 실패했습니다.');
+                  }
+                }}
               />
             </motion.div>
           ))}

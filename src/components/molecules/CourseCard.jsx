@@ -112,9 +112,38 @@ const [isBookmarked, setIsBookmarked] = useState(false);
           </div>
         </div>
         
-        <p className="text-gray-600 text-sm korean-text leading-relaxed mb-4 line-clamp-3">
+<p className="text-gray-600 text-sm korean-text leading-relaxed mb-4 line-clamp-3">
           {course.description}
         </p>
+        
+        {/* Progress Bar Section */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              진도율
+            </span>
+            <span className="text-sm font-semibold text-primary-600 dark:text-primary-400">
+              {course.progress || 0}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-primary-500 to-primary-600 h-2.5 rounded-full transition-all duration-500 ease-out shadow-sm"
+              style={{ width: `${course.progress || 0}%` }}
+              role="progressbar"
+              aria-valuenow={course.progress || 0}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label={`강의 진도율 ${course.progress || 0}%`}
+            />
+          </div>
+          {course.progress > 0 && (
+            <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <ApperIcon name="CheckCircle" className="w-3 h-3 mr-1 text-green-500" />
+              학습 중
+            </div>
+          )}
+        </div>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -122,12 +151,6 @@ const [isBookmarked, setIsBookmarked] = useState(false);
               <ApperIcon name="Users" className="w-4 h-4 mr-1" />
               {course.enrolledCount || 0}명 수강
             </div>
-            {course.progress && (
-              <div className="flex items-center text-sm text-primary-600">
-                <ApperIcon name="CheckCircle" className="w-4 h-4 mr-1" />
-                {course.progress}% 완료
-              </div>
-            )}
           </div>
           
           <Button 
