@@ -10,11 +10,11 @@ import { useNavigate } from "react-router-dom";
 import { dashboardService } from "@/services/api/dashboardService";
 
 const Dashboard = () => {
-  const [dashboardData, setDashboardData] = useState([]);
+const [dashboardData, setDashboardData] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
   const loadDashboardData = async () => {
     try {
       setError("");
@@ -30,9 +30,20 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
     loadDashboardData();
+    loadBanners();
   }, []);
+
+  const loadBanners = async () => {
+    try {
+      const { coursesService } = await import('@/services/api/coursesService');
+      const bannerData = await coursesService.getBanners('dashboard_top');
+      setBanners(bannerData);
+    } catch (error) {
+      console.error("Error loading banners:", error.message);
+    }
+  };
 
   if (loading) {
     return <Loading className="p-8" />;
@@ -81,12 +92,42 @@ const Dashboard = () => {
   };
 
   return (
-    <motion.div 
+<motion.div 
       className="space-y-8"
       variants={container}
       initial="hidden"
       animate="show"
     >
+      {/* P4 Auto-Next Banners */}
+      {banners.length > 0 && (
+        <motion.div variants={item} className="space-y-4">
+          {banners.map((banner) => (
+            <div
+              key={banner.Id}
+              className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 rounded-lg shadow-lg border border-primary-200"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <ApperIcon name="ArrowRight" className="w-4 h-4 text-white" />
+                  </div>
+                  <p className="font-medium korean-text">{banner.text}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => navigate("/courses")}
+                >
+                  이동하기
+                  <ApperIcon name="ChevronRight" className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
       {/* Header */}
       <motion.div variants={item} className="space-y-2">
         <div className="flex items-center space-x-3">

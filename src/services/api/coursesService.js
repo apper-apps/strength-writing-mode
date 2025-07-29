@@ -330,7 +330,7 @@ const params = {
   },
 
   // Progress tracking functionality - using localStorage for user-specific progress
-  updateProgress: async (courseId, progress) => {
+updateProgress: async (courseId, progress) => {
     try {
       await new Promise(resolve => setTimeout(resolve, 200));
       
@@ -344,6 +344,27 @@ const params = {
       // Save to localStorage
       localStorage.setItem('courseProgress', JSON.stringify(progressData));
       
+      // Get course details to check video completion ratio and next course
+      let courseDetails = null;
+      try {
+        courseDetails = await coursesService.getById(courseId);
+      } catch (error) {
+        console.log("Could not fetch course details for completion check");
+      }
+      
+      // Check if video completion threshold is reached (75% as per P4 spec)
+      const videoCompleteRatio = courseDetails?.videoCompleteRatio || 0.75;
+      const progressRatio = validProgress / 100;
+      
+      if (progressRatio >= videoCompleteRatio && courseDetails?.nextCourse) {
+        // Trigger banner for next course recommendation
+        try {
+          await coursesService.createNextCourseBanner(courseDetails.nextCourse);
+        } catch (bannerError) {
+          console.log("Could not create next course banner:", bannerError.message);
+        }
+      }
+      
       // Also try to update in database
       try {
         await coursesService.update(courseId, { progress: validProgress });
@@ -355,6 +376,79 @@ const params = {
     } catch (error) {
       console.error("Error updating progress:", error.message);
       return { success: false, progress: 0 };
+    }
+  },
+
+  // Create banner for next course recommendation (P4 Auto-Next feature)
+  createNextCourseBanner: async (nextCourseData) => {
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const nextCourseName = nextCourseData?.Name || nextCourseData?.title || "다음 과정";
+      
+      const params = {
+        records: [{
+          Name: "next_course_banner",
+          text: `다음 추천 과정으로 이동하세요! - ${nextCourseName}`,
+          dashboardLocation: "dashboard_top"
+        }]
+      };
+
+      const response = await apperClient.createRecord('banner', params);
+      
+      if (response.success && response.results && response.results.length > 0) {
+        const successfulRecords = response.results.filter(result => result.success);
+        if (successfulRecords.length > 0) {
+          // Banner created successfully - will be displayed on dashboard
+          return { success: true, banner: successfulRecords[0].data };
+        }
+      }
+      
+      return { success: false };
+    } catch (error) {
+      console.error("Error creating next course banner:", error.message);
+      return { success: false };
+    }
+  },
+
+  // Get banners for dashboard display
+  getBanners: async (location = 'dashboard_top') => {
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "text" } },
+          { field: { Name: "dashboardLocation" } }
+        ],
+        where: [
+          {
+            FieldName: "dashboardLocation",
+            Operator: "EqualTo",
+            Values: [location]
+          }
+        ]
+      };
+
+      const response = await apperClient.fetchRecords('banner', params);
+      
+      if (!response.success) {
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching banners:", error.message);
+      return [];
     }
   },
 
