@@ -1,0 +1,157 @@
+{
+  "user": {
+    "Id": 1,
+    "name": "김강점",
+    "email": "user@example.com",
+    "role": "Premium",
+    "joinDate": "2024-01-15",
+    "progress": 65,
+    "avatar": "",
+    "location": "서울, 대한민국",
+    "bio": "글쓰기를 통해 개인 브랜딩을 구축하고 있는 마케터입니다. 강점 기반 콘텐츠로 수익화에 성공했습니다.",
+    "totalStudyHours": 48,
+    "streak": 7
+  },
+  "stats": {
+    "completedCourses": 3,
+    "totalCourses": 8,
+    "progressPercentage": 65,
+    "postsWritten": 12,
+    "communityPoints": 145,
+    "badgesEarned": 5,
+    "totalBadges": 12,
+    "studyStreak": 7,
+    "totalStudyTime": 48
+  },
+  "completedCourses": [
+    {
+      "Id": 1,
+      "title": "강점 찾기: 나만의 전문성 발견하기",
+      "completedDate": "2024-12-10",
+      "score": 95,
+      "certificate": true,
+      "duration": "4시간"
+    },
+    {
+      "Id": 2,
+      "title": "콘셉트 설계: 독자 중심 기획법",
+      "completedDate": "2024-12-05",
+      "score": 88,
+      "certificate": true,
+      "duration": "6시간"
+    },
+    {
+      "Id": 4,
+      "title": "SNS 콘텐츠 제작 실무",
+      "completedDate": "2024-11-28",
+      "score": 92,
+      "certificate": true,
+      "duration": "3시간"
+    }
+  ],
+  "inProgressCourses": [
+    {
+      "Id": 3,
+      "title": "글 시나리오: 구조화된 글쓰기",
+      "progress": 40,
+      "lastAccessed": "2024-12-19",
+      "estimatedCompletion": "2024-12-25"
+    },
+    {
+      "Id": 5,
+      "title": "브랜딩 스토리텔링",
+      "progress": 15,
+      "lastAccessed": "2024-12-15",
+      "estimatedCompletion": "2025-01-10"
+    }
+  ],
+  "badges": [
+    {
+      "Id": 1,
+      "name": "첫 걸음",
+      "description": "첫 번째 강의를 완료했습니다",
+      "icon": "Star",
+      "color": "blue",
+      "earnedDate": "2024-01-20",
+      "category": "시작"
+    },
+    {
+      "Id": 2,
+      "name": "연속 학습자",
+      "description": "7일 연속으로 학습했습니다",
+      "icon": "Flame",
+      "color": "orange",
+      "earnedDate": "2024-02-15",
+      "category": "지속성"
+    },
+    {
+      "Id": 3,
+      "name": "완주자",
+      "description": "첫 번째 강의를 완주했습니다",
+      "icon": "Trophy",
+      "color": "gold",
+      "earnedDate": "2024-03-01",
+      "category": "성취"
+    },
+    {
+      "Id": 4,
+      "name": "커뮤니티 기여자",
+      "description": "10개의 유용한 댓글을 작성했습니다",
+      "icon": "Users",
+      "color": "green",
+      "earnedDate": "2024-03-20",
+      "category": "커뮤니티"
+    },
+    {
+      "Id": 5,
+      "name": "글쓰기 마스터",
+      "description": "3개 이상의 강의를 완료했습니다",
+      "icon": "PenTool",
+      "color": "purple",
+      "earnedDate": "2024-12-10",
+      "category": "마스터"
+    }
+  ],
+  "achievements": [
+    {
+      "Id": 1,
+      "title": "학습 마스터",
+      "description": "모든 기초 강의를 완료하세요",
+      "progress": 75,
+      "total": 100,
+      "completed": false,
+      "reward": "특별 인증서",
+      "category": "학습"
+    },
+    {
+      "Id": 2,
+      "title": "커뮤니티 리더",
+      "description": "50개의 도움이 되는 댓글을 작성하세요",
+      "progress": 20,
+      "total": 50,
+      "completed": false,
+      "reward": "리더 배지",
+      "category": "커뮤니티"
+    },
+    {
+      "Id": 3,
+      "title": "연속 학습 챔피언",
+      "description": "30일 연속 학습하기",
+      "progress": 7,
+      "total": 30,
+      "completed": false,
+      "reward": "프리미엄 1개월",
+      "category": "지속성"
+    },
+    {
+      "Id": 4,
+      "title": "글쓰기 전문가",
+      "description": "모든 고급 강의를 완료하세요",
+      "progress": 0,
+      "total": 100,
+      "completed": false,  
+      "reward": "전문가 인증",
+      "category": "전문성"
+    }
+  ]
+}

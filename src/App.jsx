@@ -6,12 +6,12 @@ import Landing from "@/components/pages/Landing";
 import Dashboard from "@/components/pages/Dashboard";
 import Courses from "@/components/pages/Courses";
 import Community from "@/components/pages/Community";
-
+import Profile from "@/components/pages/Profile";
 function App() {
   return (
     <BrowserRouter>
       <Layout>
-        <Routes>
+<Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -19,6 +19,7 @@ function App() {
           <Route path="/courses/:courseId" element={<Courses />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/post/:postId" element={<Community />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Layout>
       

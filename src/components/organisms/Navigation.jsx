@@ -15,10 +15,11 @@ const Navigation = () => {
     progress: 65
   };
 
-  const navItems = [
+const navItems = [
     { path: "/dashboard", label: "대시보드", icon: "LayoutDashboard" },
     { path: "/courses", label: "강의", icon: "BookOpen" },
-    { path: "/community", label: "커뮤니티", icon: "Users" }
+    { path: "/community", label: "커뮤니티", icon: "Users" },
+    { path: "/profile", label: "프로필", icon: "User" }
   ];
 
   const getRoleBadgeVariant = (role) => {
