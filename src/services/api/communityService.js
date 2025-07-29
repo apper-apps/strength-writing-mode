@@ -39,7 +39,7 @@ export const communityService = {
     return { ...communityData[index] };
   },
 
-  delete: async (id) => {
+delete: async (id) => {
     await new Promise(resolve => setTimeout(resolve, 300));
     const index = communityData.findIndex(item => item.Id === id);
     if (index === -1) {
@@ -47,5 +47,20 @@ export const communityService = {
     }
     const deleted = communityData.splice(index, 1)[0];
     return { ...deleted };
+  },
+
+  addComment: async (postId, commentData) => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    const postIndex = communityData.findIndex(item => item.Id === postId);
+    if (postIndex === -1) {
+      throw new Error("Post not found");
+    }
+
+    if (!communityData[postIndex].replies) {
+      communityData[postIndex].replies = [];
+    }
+
+    communityData[postIndex].replies.push(commentData);
+    return { ...communityData[postIndex] };
   }
 };

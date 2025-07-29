@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Button from "@/components/atoms/Button";
 import Input from "@/components/atoms/Input";
 import Badge from "@/components/atoms/Badge";
+import Card from "@/components/atoms/Card";
 import CommunityPostCard from "@/components/molecules/CommunityPostCard";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
@@ -12,8 +13,9 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { communityService } from "@/services/api/communityService";
+import { toast } from "react-toastify";
 
-const Community = () => {
+function Community() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
@@ -22,7 +24,18 @@ const Community = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-
+  
+  // New post modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newPostTitle, setNewPostTitle] = useState("");
+  const [newPostContent, setNewPostContent] = useState("");
+  const [newPostCategory, setNewPostCategory] = useState("질문");
+  const [createLoading, setCreateLoading] = useState(false);
+  
+  // Comment states
+  const [newComment, setNewComment] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
+  const [commentLoading, setCommentLoading] = useState(false);
   const loadPosts = async () => {
     try {
       setError("");
@@ -50,6 +63,74 @@ const Community = () => {
       setError("게시글을 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
+    }
+  };
+
+const createPost = async () => {
+    if (!newPostTitle.trim() || !newPostContent.trim()) {
+      toast.error("제목과 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    try {
+      setCreateLoading(true);
+      const postData = {
+        title: newPostTitle.trim(),
+        content: newPostContent.trim(),
+        category: newPostCategory,
+        authorId: "current_user",
+        authorName: "현재사용자",
+        authorRole: "Premium",
+        views: 0
+      };
+
+      const newPost = await communityService.create(postData);
+      setPosts(prev => [newPost, ...prev]);
+      
+      // Reset form
+      setNewPostTitle("");
+      setNewPostContent("");
+      setNewPostCategory("질문");
+      setShowCreateModal(false);
+      
+      toast.success("게시글이 성공적으로 작성되었습니다!");
+    } catch (err) {
+      toast.error("게시글 작성에 실패했습니다.");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const addComment = async () => {
+    if (!newComment.trim()) {
+      toast.error("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    try {
+      setCommentLoading(true);
+      const commentData = {
+        authorName: "현재사용자",
+        content: newComment.trim(),
+        timestamp: new Date().toISOString(),
+        replyTo: replyTo
+      };
+
+      const updatedPost = await communityService.addComment(currentPost.Id, commentData);
+      setCurrentPost(updatedPost);
+      
+      // Update posts list as well
+      setPosts(prev => prev.map(post => 
+        post.Id === currentPost.Id ? updatedPost : post
+      ));
+      
+      setNewComment("");
+      setReplyTo(null);
+      toast.success("댓글이 성공적으로 작성되었습니다!");
+    } catch (err) {
+      toast.error("댓글 작성에 실패했습니다.");
+    } finally {
+      setCommentLoading(false);
     }
   };
 
@@ -201,6 +282,63 @@ const Community = () => {
           </div>
         </div>
 
+{/* Comment Input Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="font-semibold text-lg mb-4 korean-text">
+            댓글 작성
+          </h3>
+          
+          {replyTo && (
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-600 dark:text-blue-400">
+                  {replyTo.authorName}님에게 답글
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReplyTo(null)}
+                >
+                  <ApperIcon name="X" className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 korean-text">
+                {replyTo.content.substring(0, 100)}...
+              </p>
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="댓글을 입력하세요..."
+              className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none korean-text"
+              rows="3"
+            />
+            
+            <div className="flex justify-end">
+              <Button
+                onClick={addComment}
+                disabled={commentLoading || !newComment.trim()}
+                className="korean-text"
+              >
+                {commentLoading ? (
+                  <>
+                    <ApperIcon name="Loader2" className="w-4 h-4 mr-2 animate-spin" />
+                    작성 중...
+                  </>
+                ) : (
+                  <>
+                    <ApperIcon name="Send" className="w-4 h-4 mr-2" />
+                    {replyTo ? "답글 작성" : "댓글 작성"}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {/* Replies Section */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="font-semibold text-lg mb-6 korean-text">
@@ -210,22 +348,35 @@ const Community = () => {
           {currentPost.replies && currentPost.replies.length > 0 ? (
             <div className="space-y-6">
               {currentPost.replies.map((reply, index) => (
-                <div key={index} className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <ApperIcon name="User" className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {reply.authorName}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {formatDate(reply.timestamp)}
-                      </span>
+                <div key={index} className="space-y-3">
+                  <div className="flex items-start space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <ApperIcon name="User" className="w-4 h-4 text-white" />
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300 korean-text">
-                      {reply.content}
-                    </p>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {reply.authorName}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            {formatDate(reply.timestamp)}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setReplyTo(reply)}
+                          className="text-sm text-gray-500 hover:text-primary-600"
+                        >
+                          <ApperIcon name="Reply" className="w-4 h-4 mr-1" />
+                          답글
+                        </Button>
+                      </div>
+                      <p className="text-gray-700 dark:text-gray-300 korean-text">
+                        {reply.content}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -267,7 +418,7 @@ const Community = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  return (
+return (
     <motion.div 
       className="space-y-8"
       variants={container}
@@ -285,11 +436,108 @@ const Community = () => {
           </p>
         </div>
         
-        <Button>
+        <Button onClick={() => setShowCreateModal(true)}>
           <ApperIcon name="Plus" className="w-4 h-4 mr-2" />
           새 글 작성
         </Button>
       </motion.div>
+
+      {/* Create Post Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
+          >
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white korean-text">
+                  새 글 작성
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  <ApperIcon name="X" className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-8rem)]">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 korean-text">
+                  카테고리
+                </label>
+                <select
+                  value={newPostCategory}
+                  onChange={(e) => setNewPostCategory(e.target.value)}
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white korean-text"
+                >
+                  <option value="질문">질문</option>
+                  <option value="후기">후기</option>
+                  <option value="수익인증">수익인증</option>
+                  <option value="자유">자유</option>
+                  <option value="스터디">스터디</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 korean-text">
+                  제목
+                </label>
+                <Input
+                  value={newPostTitle}
+                  onChange={(e) => setNewPostTitle(e.target.value)}
+                  placeholder="게시글 제목을 입력하세요..."
+                  className="w-full korean-text"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 korean-text">
+                  내용
+                </label>
+                <textarea
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  placeholder="게시글 내용을 입력하세요..."
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none korean-text"
+                  rows="8"
+                />
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  취소
+                </Button>
+                <Button
+                  onClick={createPost}
+                  disabled={createLoading}
+                >
+                  {createLoading ? (
+                    <>
+                      <ApperIcon name="Loader2" className="w-4 h-4 mr-2 animate-spin" />
+                      작성 중...
+                    </>
+                  ) : (
+                    <>
+                      <ApperIcon name="Send" className="w-4 h-4 mr-2" />
+                      게시글 작성
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Filters */}
       <motion.div variants={item} className="space-y-4">
