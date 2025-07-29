@@ -1,9 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import ApperIcon from "@/components/ApperIcon";
 import DarkModeToggle from "@/components/molecules/DarkModeToggle";
 import Badge from "@/components/atoms/Badge";
+import Button from "@/components/atoms/Button";
+import { AuthContext } from "../../App";
 
+// Logout Button Component
+const LogoutButton = () => {
+  const { logout } = useContext(AuthContext);
+  
+  return (
+    <Button
+      onClick={logout}
+      variant="secondary"
+      size="sm"
+      className="w-full flex items-center justify-center gap-2"
+    >
+      <ApperIcon name="LogOut" className="w-4 h-4" />
+      로그아웃
+    </Button>
+  );
+};
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -113,11 +131,12 @@ const navItems = [
         </nav>
 
         {/* Settings */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+<div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">다크 모드</span>
             <DarkModeToggle />
           </div>
+          <LogoutButton />
         </div>
       </div>
     </div>
@@ -224,7 +243,12 @@ const navItems = [
                     {item.label}
                   </NavLink>
                 ))}
-              </nav>
+</nav>
+              
+              {/* Mobile Settings */}
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                <LogoutButton />
+              </div>
             </div>
           </div>
         </div>
