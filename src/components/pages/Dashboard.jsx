@@ -442,65 +442,6 @@ const loadChallengeData = async () => {
         </Card>
       </motion.div>
     </motion.div>
-{/* Monthly Challenge Widget */}
-      <motion.div variants={item} className="mt-8">
-        <Card className="p-6 bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                <ApperIcon name="Star" className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white korean-text">
-                  이달의 챌린지
-                </h2>
-                <p className="text-sm text-orange-600 korean-text">
-                  {challenge?.goal || '4'}개 영상 완주하기
-                </p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-orange-600 hover:bg-orange-100"
-              onClick={() => console.log('Navigate to leaderboard')}
-            >
-              리더보드
-              <ApperIcon name="Trophy" className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                진행 상황
-              </span>
-              <span className="text-sm font-bold text-orange-600">
-                {participation?.progress || 0} / {challenge?.goal || 4}
-              </span>
-            </div>
-            <div className="w-full bg-orange-200 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${Math.min(100, ((participation?.progress || 0) / (challenge?.goal || 4)) * 100)}%` 
-                }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-              <span>
-                {participation?.completed ? '완료!' : `${Math.round(((participation?.progress || 0) / (challenge?.goal || 4)) * 100)}% 완료`}
-              </span>
-              {participation?.completed && (
-                <div className="flex items-center text-green-600">
-                  <ApperIcon name="CheckCircle" className="w-4 h-4 mr-1" />
-                  <span className="korean-text">목표 달성!</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      </motion.div>
   );
 };
 
